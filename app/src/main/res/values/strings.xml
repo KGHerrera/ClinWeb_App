@@ -22,4 +22,5 @@
     <string name="buscar_cita">Buscar Cita</string>
     <string name="buscar">Buscar</string>
     <string name="motivo_de_la_cita_2">Motivo de la Cita</string>
+    <string name="id_de_la_cita">ID de la Cita</string>
 </resources>

@@ -6,7 +6,10 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.PopupMenu;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -46,13 +49,39 @@ public class CitaActivity extends AppCompatActivity {
         LayoutInflater inflater = LayoutInflater.from(this);
         View formularioView = inflater.inflate(R.layout.formulario, null);
 
+        // Obtener referencias a los elementos del formulario
+        EditText editTextMotivoCita = formularioView.findViewById(R.id.editTextMotivoCita);
+        DatePicker datePicker = formularioView.findViewById(R.id.datePicker);
+        TimePicker timePicker = formularioView.findViewById(R.id.timePicker);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         builder.setView(formularioView)
                 .setTitle("Agregar Cita")
                 .setPositiveButton("Guardar", (dialog, which) -> {
-                    // Manejar clic en el botón "Guardar"
-                    // Puedes obtener datos del formulario utilizando formularioView.findViewById(R.id.xxx)
+                    // Obtener datos del formulario
+                    String motivoCita = editTextMotivoCita.getText().toString();
+
+                    // Obtener la fecha seleccionada del DatePicker
+                    int dia = datePicker.getDayOfMonth();
+                    int mes = datePicker.getMonth() + 1; // Los meses en DatePicker van de 0 a 11
+                    int ano = datePicker.getYear();
+
+                    // Obtener la hora seleccionada del TimePicker
+                    int hora = timePicker.getHour();
+                    int minuto = timePicker.getMinute();
+
+                    // Crear una cadena con la información y mostrarla en un Toast
+                    String mensaje = "Motivo de la cita: " + motivoCita +
+                            "\nFecha: " + dia + "/" + mes + "/" + ano +
+                            "\nHora: " + hora + ":" + minuto;
+
+                    Toast.makeText(this, mensaje, Toast.LENGTH_LONG).show();
+
+                    // Puedes hacer lo que quieras con los datos obtenidos aquí
+
+                    // Cierra el diálogo
+                    dialog.dismiss();
                 })
                 .setNegativeButton("Cancelar", (dialog, which) -> {
                     // Manejar clic en el botón "Cancelar" o simplemente cerrar el diálogo
@@ -62,6 +91,9 @@ public class CitaActivity extends AppCompatActivity {
         AlertDialog dialog = builder.create();
         dialog.show();
     }
+
+
+
 
     private List<Cita> getCitas() {
 

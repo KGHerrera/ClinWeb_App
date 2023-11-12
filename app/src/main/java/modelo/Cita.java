@@ -17,6 +17,8 @@ public class Cita {
         this.motivoCita = motivoCita;
     }
 
+
+
     public int getId() {
         return id;
     }
@@ -63,5 +65,17 @@ public class Cita {
 
     public void setMotivoCita(String motivoCita) {
         this.motivoCita = motivoCita;
+    }
+
+    @Override
+    public String toString() {
+        return "Cita{" +
+                "id=" + id +
+                ", pacienteId=" + pacienteId +
+                ", personalId=" + personalId +
+                ", salaId=" + salaId +
+                ", fechaHora='" + fechaHora + '\'' +
+                ", motivoCita='" + motivoCita + '\'' +
+                '}';
     }
 }
