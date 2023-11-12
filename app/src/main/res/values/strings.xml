@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">test</string>
+    <string name="username_hint">Nombre de usuario</string>
+    <string name="password_hint">Contraseña</string>
+    <string name="login_button">Iniciar sesión</string>
+    <string name="register_button">Registrarse</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="olvidaste_tu_contrase_a">¿Olvidaste tu contraseña?</string>
+    <string name="iniciar_sesi_n">Iniciar Sesión</string>
+    <string name="todo">TODO</string>
+    <string name="contrase_a">Contraseña</string>
+    <string name="registrarse">Registrarse</string>
+    <string name="nombre_de_usuario">Nombre de Usuario</string>
+    <string name="editar">Editar</string>
+    <string name="eliminar">Eliminar</string>
+    <string name="fecha_y_hora">Fecha y Hora</string>
+    <string name="id_del_personal">ID del Personal</string>
+    <string name="motivo_de_la_cita">Motivo de la Cita</string>
+    <string name="n_mero_de_sala">Número de Sala</string>
+    <string name="agregar">Agregar</string>
+    <string name="tituloCitas">CITAS</string>
+    <string name="buscar_cita">Buscar Cita</string>
+    <string name="buscar">Buscar</string>
+</resources>
