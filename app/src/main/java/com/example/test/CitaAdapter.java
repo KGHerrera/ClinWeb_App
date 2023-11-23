@@ -90,7 +90,8 @@ public class CitaAdapter extends RecyclerView.Adapter<CitaAdapter.ViewHolder> {
             e.printStackTrace();
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.AlertDialogCustom);
+
         builder.setView(formularioView)
                 .setTitle("Editar Cita")
                 .setPositiveButton("Guardar", (dialog, which) -> {

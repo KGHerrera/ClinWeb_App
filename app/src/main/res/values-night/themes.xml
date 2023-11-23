@@ -3,5 +3,12 @@
     <style name="Base.Theme.Test" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+
+        <item name="android:alertDialogTheme">@style/AlertDialogCustom</item>
+    </style>
+
+    <!-- Estilo personalizado para los diálogos de alerta -->
+    <style name="AlertDialogCustom" parent="ThemeOverlay.Material3.Dialog.Alert">
+        <item name="android:background">#1a1a1b</item>
     </style>
 </resources>

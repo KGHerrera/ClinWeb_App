@@ -1,6 +1,8 @@
 package com.example.test;
 
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -18,8 +20,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import modelo.Cita;
 
@@ -42,8 +49,6 @@ public class CitaActivity extends AppCompatActivity {
         FloatingActionButton fabAgregar = findViewById(R.id.fabAgregar);
         fabAgregar.setOnClickListener(view -> mostrarFormulario());
     }
-
-
 
     private void mostrarFormulario() {
         LayoutInflater inflater = LayoutInflater.from(this);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AlertDialogCustom.Dark" parent="Theme.AppCompat.Dialog.Alert">
-        <item name="android:background">#1E0932</item>
+    <style name="AppTheme" parent="Theme.AppCompat">
+
     </style>
 </resources>

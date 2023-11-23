@@ -1,20 +1,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp">
-
-    <EditText
-        android:id="@+id/editTextIdCita"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/id_de_la_cita"
-        android:inputType="number"
-        android:minHeight="48dp"
-        android:textColorHint="#5D5d5d"
-        android:autofillHints=""
-        tools:ignore="VisualLintTextFieldSize" />
 
     <EditText
         android:id="@+id/editTextMotivoCita"
@@ -24,8 +12,7 @@
         android:inputType="text"
         android:minHeight="48dp"
         android:textColorHint="#5D5d5d"
-        android:autofillHints=""
-        tools:ignore="VisualLintTextFieldSize" />
+        android:autofillHints="" />
 
     <DatePicker
         android:id="@+id/datePicker"
