@@ -70,12 +70,12 @@ public class Cita {
     @Override
     public String toString() {
         return "Cita{" +
-                "id=" + id +
-                ", pacienteId=" + pacienteId +
-                ", personalId=" + personalId +
-                ", salaId=" + salaId +
-                ", fechaHora='" + fechaHora + '\'' +
-                ", motivoCita='" + motivoCita + '\'' +
+                "id_cita=" + id +
+                ", fk_paciente=" + pacienteId +
+                ", fk_personal=" + personalId +
+                ", fk_sala=" + salaId +
+                ", fecha_hora='" + fechaHora + '\'' +
+                ", motivo_cita='" + motivoCita + '\'' +
                 '}';
     }
 }

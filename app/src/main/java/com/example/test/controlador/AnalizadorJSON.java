@@ -30,9 +30,64 @@ public class AnalizadorJSON {
     private HttpURLConnection conexion = null;
     private URL url = null;
 
+
+    public JSONObject realizarAlta(String direccionURL, String metodo, Cita cita) {
+        try {
+            // Crear el objeto JSON con los datos de la cita
+            JSONObject jsonCita = new JSONObject();
+            jsonCita.put("fk_paciente", cita.getPacienteId());
+            jsonCita.put("fk_personal", cita.getPersonalId());
+            jsonCita.put("fk_sala", cita.getSalaId());
+            jsonCita.put("fecha_hora", cita.getFechaHora());
+            jsonCita.put("motivo_cita", cita.getMotivoCita());
+
+            // Convertir el objeto JSON a cadena
+            String cadenaJSON = jsonCita.toString();
+
+            Log.i("MSJ", cadenaJSON);
+
+            // Configurar la conexión
+            url = new URL(direccionURL);
+            conexion = (HttpURLConnection) url.openConnection();
+
+            conexion.setDoOutput(true);
+            conexion.setRequestMethod(metodo);
+            conexion.setFixedLengthStreamingMode(cadenaJSON.length());
+            conexion.setRequestProperty("Content-Type", "application/json");
+
+            // Enviar los datos al servidor
+            os = new BufferedOutputStream(conexion.getOutputStream());
+            os.write(cadenaJSON.getBytes());
+            os.flush();
+            os.close();
+
+            // Leer la respuesta del servidor
+            is = new BufferedInputStream(conexion.getInputStream());
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            StringBuilder cadena = new StringBuilder();
+
+            String fila;
+            while ((fila = br.readLine()) != null) {
+                cadena.append(fila).append("\n");
+            }
+
+            is.close();
+
+            Log.i("MSJ->", String.valueOf(cadena));
+
+            // Convertir la respuesta a un objeto JSON
+            jsonObject = new JSONObject(String.valueOf(cadena));
+
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
+
+        return jsonObject;
+    }
+
+
     public JSONObject peticionHTTP(String direccionURL, String metodo, Cita cita) {
         try {
-            String id = URLEncoder.encode(String.valueOf(cita.getId()), "UTF-8");
             String pacienteId = URLEncoder.encode(String.valueOf(cita.getPacienteId()), "UTF-8");
             String personalId = URLEncoder.encode(String.valueOf(cita.getPersonalId()), "UTF-8");
             String salaId = URLEncoder.encode(String.valueOf(cita.getSalaId()), "UTF-8");
@@ -92,40 +147,28 @@ public class AnalizadorJSON {
     }
 
 
+    //----------METODO PARA Consultas
     public JSONObject peticionHTTPConsultas(String cadenaURL, String metodo, String criterio) {
         try {
-            JSONObject jsonFiltro = new JSONObject();
-            jsonFiltro.put("criterio", criterio);
-
-            String cadenaJSON = jsonFiltro.toString();
-
-            Log.i("MSJ", cadenaJSON);
+            // Construir la URL con el criterio como parámetro en la cadena de consulta
+            if (criterio != null && !criterio.isEmpty()) {
+                cadenaURL += "?criterio=" + URLEncoder.encode(criterio, "UTF-8");
+            }
 
             url = new URL(cadenaURL);
             conexion = (HttpURLConnection) url.openConnection();
 
-            conexion.setDoOutput(true);
+            // Configurar la conexión para la solicitud GET
             conexion.setRequestMethod(metodo);
             conexion.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-            os = new BufferedOutputStream(conexion.getOutputStream());
-            os.write(cadenaJSON.getBytes());
-            os.flush();
-            os.close();
-
-        } catch (UnsupportedEncodingException | JSONException | MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
+            // Realizar la conexión y obtener la respuesta
             is = new BufferedInputStream(conexion.getInputStream());
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
             StringBuilder cad = new StringBuilder();
 
-            String fila;
+            String fila = null;
             while ((fila = br.readLine()) != null) {
                 cad.append(fila).append("\n");
             }
@@ -141,54 +184,7 @@ public class AnalizadorJSON {
 
         return jsonObject;
     }
-    
-    public ArrayList<Cita> obtenerListaCitas(String direccionURL, String metodo) {
-        ArrayList<Cita> listaCitas = new ArrayList<>();
 
-        try {
-            url = new URL(direccionURL);
-            conexion = (HttpURLConnection) url.openConnection();
-
-            conexion.setRequestMethod(metodo);
-            conexion.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-
-            is = new BufferedInputStream(conexion.getInputStream());
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
-
-            StringBuilder cad = new StringBuilder();
-
-            String fila;
-            while ((fila = br.readLine()) != null) {
-                cad.append(fila).append("\n");
-            }
-            is.close();
-
-            String cadena = cad.toString();
-            Log.d("--->", cadena);
-
-            // Procesar el JSON y convertirlo a ArrayList de citas
-            JSONObject jsonResponse = new JSONObject(cadena);
-            JSONArray jsonArray = jsonResponse.getJSONArray("citas");
-
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonCita = jsonArray.getJSONObject(i);
-                Cita cita = new Cita(
-                        jsonCita.getInt("id_cita"),
-                        jsonCita.getInt("fk_paciente"),
-                        jsonCita.getInt("fk_personal"),
-                        jsonCita.getInt("fk_sala"),
-                        jsonCita.getString("fecha_hora"),
-                        jsonCita.getString("motivo_cita")
-                );
-                listaCitas.add(cita);
-            }
-
-        } catch (IOException | JSONException e) {
-            e.printStackTrace();
-        }
-
-        return listaCitas;
-    }
 
 }
 

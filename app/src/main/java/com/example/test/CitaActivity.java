@@ -3,7 +3,10 @@ package com.example.test;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.net.ConnectivityManager;
+import android.net.Network;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,7 +21,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.test.controlador.AnalizadorJSON;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -31,23 +39,102 @@ import java.util.Locale;
 import modelo.Cita;
 
 public class CitaActivity extends AppCompatActivity {
+    private RecyclerView recyclerView;
+    private CitaAdapter adapter;
+
+    public static List<Cita> citas;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cita);
 
-        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setHasFixedSize(true);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
 
-        List<Cita> citaList = getCitas();
-        CitaAdapter adapter = new CitaAdapter(citaList);
-        recyclerView.setAdapter(adapter);
+
+
+        citas = new ArrayList<>();
+
+        new Thread(() -> {
+            String url = "http://192.168.1.8/clinica/API/apiAndroidMostrar.php";
+            String metodo = "GET";
+
+            AnalizadorJSON analizadorJSON = new AnalizadorJSON();
+            JSONObject jsonObject = analizadorJSON.peticionHTTPConsultas(url, metodo, "");
+
+            try {
+                JSONArray datos = jsonObject.getJSONArray("citas");
+
+                for (int i = 0; i < datos.length(); i++) {
+                    int idCita = datos.getJSONObject(i).getInt("id_cita");
+                    int fkPaciente = datos.getJSONObject(i).getInt("fk_paciente");
+                    int fkPersonal = datos.getJSONObject(i).getInt("fk_personal");
+                    int fkSala = datos.getJSONObject(i).getInt("fk_sala");
+                    String fechaHora = datos.getJSONObject(i).getString("fecha_hora");
+                    String motivoCita = datos.getJSONObject(i).getString("motivo_cita");
+
+                    Cita cita = new Cita(idCita, fkPaciente, fkPersonal, fkSala, fechaHora, motivoCita);
+                    citas.add(cita);
+                }
+
+                // Actualizar el adaptador en el hilo principal
+                runOnUiThread(() -> {
+                    adapter = new CitaAdapter(citas);
+                    recyclerView.setAdapter(adapter);
+                });
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }).start();
+
 
 
         FloatingActionButton fabAgregar = findViewById(R.id.fabAgregar);
         fabAgregar.setOnClickListener(view -> mostrarFormulario());
+    }
+
+    public void actualizarCitas() {
+        new Thread(() -> {
+            String url = "http://192.168.1.8/clinica/API/apiAndroidMostrar.php";
+            String metodo = "GET";
+
+            AnalizadorJSON analizadorJSON = new AnalizadorJSON();
+            JSONObject jsonObject = analizadorJSON.peticionHTTPConsultas(url, metodo, "");
+
+            try {
+                JSONArray datos = jsonObject.getJSONArray("citas");
+
+                // Limpiar la lista antes de agregar nuevas citas
+                citas.clear();
+
+                for (int i = 0; i < datos.length(); i++) {
+                    int idCita = datos.getJSONObject(i).getInt("id_cita");
+                    int fkPaciente = datos.getJSONObject(i).getInt("fk_paciente");
+                    int fkPersonal = datos.getJSONObject(i).getInt("fk_personal");
+                    int fkSala = datos.getJSONObject(i).getInt("fk_sala");
+                    String fechaHora = datos.getJSONObject(i).getString("fecha_hora");
+                    String motivoCita = datos.getJSONObject(i).getString("motivo_cita");
+
+                    Cita cita = new Cita(idCita, fkPaciente, fkPersonal, fkSala, fechaHora, motivoCita);
+                    citas.add(cita);
+                }
+
+                // Notificar al adaptador sobre los cambios en el hilo principal
+                runOnUiThread(() -> {
+                    if (adapter != null) {
+                        adapter.notifyDataSetChanged();
+                    }
+                });
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     private void mostrarFormulario() {
@@ -76,14 +163,18 @@ public class CitaActivity extends AppCompatActivity {
                     int hora = timePicker.getHour();
                     int minuto = timePicker.getMinute();
 
-                    // Crear una cadena con la información y mostrarla en un Toast
-                    String mensaje = "Motivo de la cita: " + motivoCita +
-                            "\nFecha: " + dia + "/" + mes + "/" + ano +
-                            "\nHora: " + hora + ":" + minuto;
+                    String fechaHora = String.format(Locale.getDefault(), "%04d-%02d-%02d %02d:%02d:00", ano, mes, dia, hora, minuto);
 
-                    Toast.makeText(this, mensaje, Toast.LENGTH_LONG).show();
+                    // Crear un objeto de tipo Cita
+                    Cita nuevaCita = new Cita(0,3, 1, 9, fechaHora, motivoCita);
 
-                    // Puedes hacer lo que quieras con los datos obtenidos aquí
+                    // Mostrar la información de la cita en un Toast
+                    //String mensaje = "Cita guardada:\n" + nuevaCita.toString();
+                    //Toast.makeText(this, mensaje, Toast.LENGTH_LONG).show();
+
+
+                    agregarCita(nuevaCita);
+
 
                     // Cierra el diálogo
                     dialog.dismiss();
@@ -97,20 +188,42 @@ public class CitaActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    public void agregarCita(Cita cita) {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        Network network = cm.getActiveNetwork();
+
+        if (network != null && cm.getNetworkCapabilities(cm.getActiveNetwork()) != null) {
+
+            new Thread(() -> {
+
+                String url = "http://192.168.1.8/clinica/API/apiAndroidAltas.php";
+                String metodo = "POST";
+
+                AnalizadorJSON analizadorJSON = new AnalizadorJSON();
+                JSONObject jsonObject = analizadorJSON.realizarAlta(url, metodo, cita);
+
+                try {
+                    String res = jsonObject.getString("mensaje");
+
+                    boolean exito = jsonObject.getBoolean("exito");
+
+                    runOnUiThread(() -> {
+                        Toast.makeText(getApplicationContext(), res, Toast.LENGTH_LONG).show();
+
+                        if(exito){
+                            citas.add(cita);
+                            adapter.notifyDataSetChanged();
+                        }
+                    });
 
 
 
-    private List<Cita> getCitas() {
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }).start();
 
-        List<Cita> citas = new ArrayList<>();
-
-        citas.add(new Cita(1, 101, 201, 301, "2023-11-11 10:00 AM", "Examen de rutina"));
-        citas.add(new Cita(2, 102, 202, 302, "2023-11-12 02:30 PM", "Consulta médica"));
-        citas.add(new Cita(3, 103, 203, 303, "2023-11-13 09:15 AM", "Prueba de laboratorio"));
-        citas.add(new Cita(1, 101, 201, 301, "2023-11-11 10:00 AM", "Examen de rutina"));
-        citas.add(new Cita(2, 102, 202, 302, "2023-11-12 02:30 PM", "Consulta médica"));
-        citas.add(new Cita(3, 103, 203, 303, "2023-11-13 09:15 AM", "Prueba de laboratorio"));
-
-        return citas;
+        } else
+            Log.e("MSJ->", "Error en la red");
     }
 }
