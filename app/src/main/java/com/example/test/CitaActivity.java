@@ -5,9 +5,12 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TimePicker;
@@ -39,6 +42,10 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
     public CitaAdapter adapter;
     public List<Cita> citas;
 
+    EditText searchBox;
+
+    Button searchButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +53,9 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
+
+        searchBox = findViewById(R.id.searchBox);
+        searchButton = findViewById(R.id.searchButton);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
@@ -87,10 +97,38 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
             }
         }).start();
 
+        searchButton.setOnClickListener(view -> {
+            if(!searchBox.getText().toString().equals("")){
+                busquedaCitas(searchBox.getText().toString());
+            }
+        });
+
 
 
         FloatingActionButton fabAgregar = findViewById(R.id.fabAgregar);
         fabAgregar.setOnClickListener(view -> mostrarFormulario());
+
+
+        searchBox.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                // Este método se llama para notificar que algo en el texto está a punto de cambiar
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                String textoActual = charSequence.toString();
+                if(textoActual.equals("")){
+                    actualizarCitas();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                // Este método se llama para notificar que algo en el texto ha cambiado
+                // después de que el cambio ha ocurrido
+            }
+        });
     }
 
     public void mostrarConfirmacionEliminar(Cita cita, Context context) {
@@ -142,6 +180,37 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
             Log.e("MSJ->", "Error en la red");
     }
 
+
+    public void modificarCita(Cita cita){
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        Network network = cm.getActiveNetwork();
+
+        if (network != null && cm.getNetworkCapabilities(cm.getActiveNetwork()) != null) {
+            new Thread(() -> {
+                String url = "http://192.168.1.8/clinica/API/apiAndroidCambios.php";
+                String metodo = "POST";
+
+                AnalizadorJSON analizadorJSON = new AnalizadorJSON();
+                JSONObject jsonObject = analizadorJSON.realizarCambio(url, metodo, cita);
+
+                try {
+                    String mensaje = jsonObject.getString("mensaje");
+                    boolean exito = mensaje.equals("Cita actualizada correctamente");
+
+                    runOnUiThread(() -> {
+                        Toast.makeText(getApplicationContext(), mensaje, Toast.LENGTH_LONG).show();
+                        if(exito){
+                            actualizarCitas();
+                        }
+                    });
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+            }).start();
+        } else
+            Log.e("MSJ->", "Error en la red");
+    }
+
     private void mostrarFormularioEditar(Cita cita, Context context) {
         LayoutInflater inflater = LayoutInflater.from(context);
         View formularioView = inflater.inflate(R.layout.formulario, null);
@@ -180,18 +249,18 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
                     String nuevoMotivo = editTextMotivoCita.getText().toString();
 
                     // Obtén la nueva fecha y hora del DatePicker y TimePicker
-                    int nuevoYear = datePicker.getYear();
-                    int nuevoMonth = datePicker.getMonth();
-                    int nuevoDay = datePicker.getDayOfMonth();
-                    int nuevoHour = timePicker.getHour();
-                    int nuevoMinute = timePicker.getMinute();
+                    int ano = datePicker.getYear();
+                    int mes = datePicker.getMonth() + 1;
+                    int dia = datePicker.getDayOfMonth();
+                    int hora = timePicker.getHour();
+                    int minuto = timePicker.getMinute();
 
-                    Calendar nuevoCalendar = Calendar.getInstance();
-                    nuevoCalendar.set(nuevoYear, nuevoMonth, nuevoDay, nuevoHour, nuevoMinute);
-                    Date nuevaFechaHora = nuevoCalendar.getTime();
+                    String fechaHora = String.format(Locale.getDefault(), "%04d-%02d-%02d %02d:%02d:00", ano, mes, dia, hora, minuto);
 
+                    cita.setMotivoCita(nuevoMotivo);
+                    cita.setFechaHora(fechaHora);
 
-                    Toast.makeText(context, cita.toString(), Toast.LENGTH_SHORT).show();
+                    modificarCita(cita);
 
                 })
                 .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss());
@@ -229,6 +298,47 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
                 // Notificar al adaptador sobre los cambios en el hilo principal
                 runOnUiThread(() -> {
                     if (adapter != null) {
+                        adapter.setListener(this);
+                        adapter.notifyDataSetChanged();
+                    }
+                });
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    public void busquedaCitas(String criterio) {
+        new Thread(() -> {
+            String url = "http://192.168.1.8/clinica/API/apiAndroidCriterio.php";
+            String metodo = "GET";
+
+            AnalizadorJSON analizadorJSON = new AnalizadorJSON();
+            JSONObject jsonObject = analizadorJSON.buscarCitas(url, metodo, criterio);
+
+            try {
+                JSONArray datos = jsonObject.getJSONArray("citas");
+
+                // Limpiar la lista antes de agregar nuevas citas
+                citas.clear();
+
+                for (int i = 0; i < datos.length(); i++) {
+                    int idCita = datos.getJSONObject(i).getInt("id_cita");
+                    int fkPaciente = datos.getJSONObject(i).getInt("fk_paciente");
+                    int fkPersonal = datos.getJSONObject(i).getInt("fk_personal");
+                    int fkSala = datos.getJSONObject(i).getInt("fk_sala");
+                    String fechaHora = datos.getJSONObject(i).getString("fecha_hora");
+                    String motivoCita = datos.getJSONObject(i).getString("motivo_cita");
+
+                    Cita cita = new Cita(idCita, fkPaciente, fkPersonal, fkSala, fechaHora, motivoCita);
+                    citas.add(cita);
+                }
+
+                // Notificar al adaptador sobre los cambios en el hilo principal
+                runOnUiThread(() -> {
+                    if (adapter != null) {
+                        adapter.setListener(this);
                         adapter.notifyDataSetChanged();
                     }
                 });
@@ -291,7 +401,6 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
     }
 
 
-
     public void agregarCita(Cita cita) {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         Network network = cm.getActiveNetwork();
@@ -308,19 +417,14 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
 
                 try {
                     String res = jsonObject.getString("mensaje");
-
                     boolean exito = jsonObject.getBoolean("exito");
-
                     runOnUiThread(() -> {
                         Toast.makeText(getApplicationContext(), res, Toast.LENGTH_LONG).show();
 
                         if(exito){
-                            citas.add(cita);
-                            adapter.notifyDataSetChanged();
+                            actualizarCitas();
                         }
                     });
-
-
 
                 } catch (JSONException e) {
                     e.printStackTrace();
