@@ -2,18 +2,14 @@ package com.example.test;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.PopupMenu;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
@@ -38,11 +34,10 @@ import java.util.Locale;
 
 import modelo.Cita;
 
-public class CitaActivity extends AppCompatActivity {
+public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaAdapterListener {
     private RecyclerView recyclerView;
-    private CitaAdapter adapter;
-
-    public static List<Cita> citas;
+    public CitaAdapter adapter;
+    public List<Cita> citas;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +49,6 @@ public class CitaActivity extends AppCompatActivity {
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
-
 
 
         citas = new ArrayList<>();
@@ -84,6 +78,7 @@ public class CitaActivity extends AppCompatActivity {
                 // Actualizar el adaptador en el hilo principal
                 runOnUiThread(() -> {
                     adapter = new CitaAdapter(citas);
+                    adapter.setListener(this);
                     recyclerView.setAdapter(adapter);
                 });
 
@@ -96,6 +91,113 @@ public class CitaActivity extends AppCompatActivity {
 
         FloatingActionButton fabAgregar = findViewById(R.id.fabAgregar);
         fabAgregar.setOnClickListener(view -> mostrarFormulario());
+    }
+
+    public void mostrarConfirmacionEliminar(Cita cita, Context context) {
+        AlertDialog.Builder confirmarEliminarBuilder = new AlertDialog.Builder(context, R.style.AlertDialogCustom);
+        confirmarEliminarBuilder.setTitle("¿Estás seguro de eliminar esta cita?");
+        confirmarEliminarBuilder.setPositiveButton("Eliminar", (dialog, which) -> {
+            eliminarCita(cita);
+        });
+        confirmarEliminarBuilder.setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog confirmarEliminarDialog = confirmarEliminarBuilder.create();
+        confirmarEliminarDialog.show();
+    }
+
+    public void eliminarCita(Cita cita){
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        Network network = cm.getActiveNetwork();
+
+        if (network != null && cm.getNetworkCapabilities(cm.getActiveNetwork()) != null) {
+
+            new Thread(() -> {
+
+                String url = "http://192.168.1.8/clinica/API/apiAndroidBaja.php";
+                String metodo = "POST";
+
+                AnalizadorJSON analizadorJSON = new AnalizadorJSON();
+                JSONObject jsonObject = analizadorJSON.realizarEliminacion(url, metodo, cita.getId());
+
+
+                try {
+                    String mensaje = jsonObject.getString("mensaje");
+                    boolean exito = mensaje.equals("Cita eliminada correctamente");
+
+                    runOnUiThread(() -> {
+                        Toast.makeText(getApplicationContext(), mensaje, Toast.LENGTH_LONG).show();
+
+                        if(exito){
+                            actualizarCitas();
+                        }
+                    });
+
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+
+            }).start();
+
+        } else
+            Log.e("MSJ->", "Error en la red");
+    }
+
+    private void mostrarFormularioEditar(Cita cita, Context context) {
+        LayoutInflater inflater = LayoutInflater.from(context);
+        View formularioView = inflater.inflate(R.layout.formulario, null);
+        EditText editTextMotivoCita = formularioView.findViewById(R.id.editTextMotivoCita);
+        DatePicker datePicker = formularioView.findViewById(R.id.datePicker);
+        TimePicker timePicker = formularioView.findViewById(R.id.timePicker);
+
+        editTextMotivoCita.setText(cita.getMotivoCita());
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+        try {
+            Date fechaHora = dateFormat.parse(cita.getFechaHora());
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(fechaHora);
+
+            int year = calendar.get(Calendar.YEAR);
+            int month = calendar.get(Calendar.MONTH);
+            int day = calendar.get(Calendar.DAY_OF_MONTH);
+            datePicker.init(year, month, day, null);
+
+            int hour = calendar.get(Calendar.HOUR_OF_DAY);
+            int minute = calendar.get(Calendar.MINUTE);
+            timePicker.setHour(hour);
+            timePicker.setMinute(minute);
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(context, R.style.AlertDialogCustom);
+
+        builder.setView(formularioView)
+                .setTitle("Editar Cita")
+                .setPositiveButton("Guardar", (dialog, which) -> {
+
+                    String nuevoMotivo = editTextMotivoCita.getText().toString();
+
+                    // Obtén la nueva fecha y hora del DatePicker y TimePicker
+                    int nuevoYear = datePicker.getYear();
+                    int nuevoMonth = datePicker.getMonth();
+                    int nuevoDay = datePicker.getDayOfMonth();
+                    int nuevoHour = timePicker.getHour();
+                    int nuevoMinute = timePicker.getMinute();
+
+                    Calendar nuevoCalendar = Calendar.getInstance();
+                    nuevoCalendar.set(nuevoYear, nuevoMonth, nuevoDay, nuevoHour, nuevoMinute);
+                    Date nuevaFechaHora = nuevoCalendar.getTime();
+
+
+                    Toast.makeText(context, cita.toString(), Toast.LENGTH_SHORT).show();
+
+                })
+                .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss());
+
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     public void actualizarCitas() {
@@ -188,6 +290,8 @@ public class CitaActivity extends AppCompatActivity {
         dialog.show();
     }
 
+
+
     public void agregarCita(Cita cita) {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         Network network = cm.getActiveNetwork();
@@ -225,5 +329,15 @@ public class CitaActivity extends AppCompatActivity {
 
         } else
             Log.e("MSJ->", "Error en la red");
+    }
+
+    @Override
+    public void onCitaEdit(Cita cita, Context context) {
+        mostrarFormularioEditar(cita, context);
+    }
+
+    @Override
+    public void onCitaDelete(Cita cita, Context context) {
+        mostrarConfirmacionEliminar(cita, context);
     }
 }

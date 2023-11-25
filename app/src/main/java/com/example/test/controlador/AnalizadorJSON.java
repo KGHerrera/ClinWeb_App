@@ -85,6 +85,57 @@ public class AnalizadorJSON {
         return jsonObject;
     }
 
+    public JSONObject realizarEliminacion(String direccionURL, String metodo, int idCita) {
+        try {
+            // Crear el objeto JSON con el ID de la cita
+            JSONObject jsonCita = new JSONObject();
+            jsonCita.put("id_cita", idCita);
+
+            // Convertir el objeto JSON a cadena
+            String cadenaJSON = jsonCita.toString();
+
+            Log.i("MSJ", cadenaJSON);
+
+            // Configurar la conexión
+            url = new URL(direccionURL);
+            conexion = (HttpURLConnection) url.openConnection();
+
+            conexion.setDoOutput(true);
+            conexion.setRequestMethod(metodo);
+            conexion.setFixedLengthStreamingMode(cadenaJSON.length());
+            conexion.setRequestProperty("Content-Type", "application/json");
+
+            // Enviar los datos al servidor
+            os = new BufferedOutputStream(conexion.getOutputStream());
+            os.write(cadenaJSON.getBytes());
+            os.flush();
+            os.close();
+
+            // Leer la respuesta del servidor
+            is = new BufferedInputStream(conexion.getInputStream());
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            StringBuilder cadena = new StringBuilder();
+
+            String fila;
+            while ((fila = br.readLine()) != null) {
+                cadena.append(fila).append("\n");
+            }
+
+            is.close();
+
+            Log.i("MSJ->", String.valueOf(cadena));
+
+            // Convertir la respuesta a un objeto JSON
+            jsonObject = new JSONObject(String.valueOf(cadena));
+
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
+
+        return jsonObject;
+    }
+
+
 
     public JSONObject peticionHTTP(String direccionURL, String metodo, Cita cita) {
         try {
