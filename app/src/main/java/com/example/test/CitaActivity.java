@@ -44,17 +44,19 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
     public CitaAdapter adapter;
     public List<Cita> citas;
 
+    LayoutInflater inflater;
+
     EditText searchBox;
 
     Button searchButton;
 
     String[] datos = new String[]{"Seleccionar doctor...","1 Dk. Damecio John", "2 Dra. Juana Gallos", "3 DK. Country 2"};
     ArrayAdapter<String> adapterPersonal;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cita);
-
 
         adapterPersonal = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, datos);
 
@@ -135,7 +137,11 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
                 // después de que el cambio ha ocurrido
             }
         });
+
+
+        inflater = LayoutInflater.from(this);
     }
+
 
     public void mostrarConfirmacionEliminar(Cita cita, Context context) {
         AlertDialog.Builder confirmarEliminarBuilder = new AlertDialog.Builder(context, R.style.AlertDialogCustom);
@@ -218,7 +224,7 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
     }
 
     private void mostrarFormularioEditar(Cita cita, Context context) {
-        LayoutInflater inflater = LayoutInflater.from(context);
+
         View formularioView = inflater.inflate(R.layout.formulario, null);
         EditText editTextMotivoCita = formularioView.findViewById(R.id.editTextMotivoCita);
         DatePicker datePicker = formularioView.findViewById(R.id.datePicker);
@@ -226,6 +232,9 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
 
         Spinner spinnerPersonal = formularioView.findViewById(R.id.spinnerPersonal);
         spinnerPersonal.setAdapter(adapterPersonal);
+
+        int idPersonal = cita.getPersonalId();
+        spinnerPersonal.setSelection(idPersonal);
 
         editTextMotivoCita.setText(cita.getMotivoCita());
 
@@ -376,10 +385,11 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
     }
 
     private void mostrarFormulario() {
-        LayoutInflater inflater = LayoutInflater.from(this);
-        View formularioView = inflater.inflate(R.layout.formulario, null);
+
 
         // Obtener referencias a los elementos del formulario
+        View formularioView = inflater.inflate(R.layout.formulario, null);
+
         EditText editTextMotivoCita = formularioView.findViewById(R.id.editTextMotivoCita);
         DatePicker datePicker = formularioView.findViewById(R.id.datePicker);
         TimePicker timePicker = formularioView.findViewById(R.id.timePicker);
@@ -388,8 +398,6 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
         spinnerPersonal.setAdapter(adapterPersonal);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-
 
         builder.setView(formularioView)
                 .setTitle("Agregar Cita")
