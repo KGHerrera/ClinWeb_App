@@ -10,9 +10,11 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
@@ -46,10 +48,15 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
 
     Button searchButton;
 
+    String[] datos = new String[]{"Seleccionar doctor...","1 Dk. Damecio John", "2 Dra. Juana Gallos", "3 DK. Country 2"};
+    ArrayAdapter<String> adapterPersonal;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cita);
+
+
+        adapterPersonal = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, datos);
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
@@ -59,7 +66,6 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
-
 
         citas = new ArrayList<>();
 
@@ -218,6 +224,9 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
         DatePicker datePicker = formularioView.findViewById(R.id.datePicker);
         TimePicker timePicker = formularioView.findViewById(R.id.timePicker);
 
+        Spinner spinnerPersonal = formularioView.findViewById(R.id.spinnerPersonal);
+        spinnerPersonal.setAdapter(adapterPersonal);
+
         editTextMotivoCita.setText(cita.getMotivoCita());
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
@@ -248,6 +257,21 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
 
                     String nuevoMotivo = editTextMotivoCita.getText().toString();
 
+                    if(nuevoMotivo.equals("")){
+                        runOnUiThread(() -> {
+                            Toast.makeText(getApplicationContext(), "Error al agregar debes escribir un motivo", Toast.LENGTH_LONG).show();
+                        });
+                        return;
+                    }
+
+                    if(spinnerPersonal.getSelectedItem().equals("Seleccionar doctor...")) {
+                        runOnUiThread(() -> {
+                            Toast.makeText(getApplicationContext(), "Error al agregar debes seleccionar un doctor", Toast.LENGTH_LONG).show();
+                        });
+                        return;
+                    }
+
+
                     // Obtén la nueva fecha y hora del DatePicker y TimePicker
                     int ano = datePicker.getYear();
                     int mes = datePicker.getMonth() + 1;
@@ -255,8 +279,10 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
                     int hora = timePicker.getHour();
                     int minuto = timePicker.getMinute();
 
+                    int personal = Integer.parseInt(spinnerPersonal.getSelectedItem().toString().split(" ")[0]);
                     String fechaHora = String.format(Locale.getDefault(), "%04d-%02d-%02d %02d:%02d:00", ano, mes, dia, hora, minuto);
 
+                    cita.setPersonalId(personal);
                     cita.setMotivoCita(nuevoMotivo);
                     cita.setFechaHora(fechaHora);
 
@@ -358,7 +384,12 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
         DatePicker datePicker = formularioView.findViewById(R.id.datePicker);
         TimePicker timePicker = formularioView.findViewById(R.id.timePicker);
 
+        Spinner spinnerPersonal = formularioView.findViewById(R.id.spinnerPersonal);
+        spinnerPersonal.setAdapter(adapterPersonal);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+
 
         builder.setView(formularioView)
                 .setTitle("Agregar Cita")
@@ -366,10 +397,27 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
                     // Obtener datos del formulario
                     String motivoCita = editTextMotivoCita.getText().toString();
 
+
+                    if(motivoCita.equals("")){
+                        runOnUiThread(() -> {
+                            Toast.makeText(getApplicationContext(), "Error al agregar debes escribir un motivo", Toast.LENGTH_LONG).show();
+                        });
+                        return;
+                    }
+
+                    if(spinnerPersonal.getSelectedItem().equals("Seleccionar doctor...")) {
+                        runOnUiThread(() -> {
+                            Toast.makeText(getApplicationContext(), "Error al agregar debes seleccionar un doctor", Toast.LENGTH_LONG).show();
+                        });
+                        return;
+                    }
+
                     // Obtener la fecha seleccionada del DatePicker
                     int dia = datePicker.getDayOfMonth();
                     int mes = datePicker.getMonth() + 1; // Los meses en DatePicker van de 0 a 11
                     int ano = datePicker.getYear();
+
+                    int personal = Integer.parseInt(spinnerPersonal.getSelectedItem().toString().split(" ")[0]);
 
                     // Obtener la hora seleccionada del TimePicker
                     int hora = timePicker.getHour();
@@ -378,7 +426,7 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
                     String fechaHora = String.format(Locale.getDefault(), "%04d-%02d-%02d %02d:%02d:00", ano, mes, dia, hora, minuto);
 
                     // Crear un objeto de tipo Cita
-                    Cita nuevaCita = new Cita(0,3, 1, 9, fechaHora, motivoCita);
+                    Cita nuevaCita = new Cita(0,3, personal, 9, fechaHora, motivoCita);
 
                     // Mostrar la información de la cita en un Toast
                     //String mensaje = "Cita guardada:\n" + nuevaCita.toString();

@@ -15,6 +15,13 @@
         android:textColorHint="#5D5d5d"
         android:autofillHints="" />
 
+    <Spinner
+        android:id="@+id/spinnerPersonal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:minHeight="64dp" />
+
     <DatePicker
         android:id="@+id/datePicker"
         android:layout_width="match_parent"
