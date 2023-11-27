@@ -142,6 +142,62 @@ public class AnalizadorJSON {
     }
 
 
+    public JSONObject verificarUsuario(String direccionURL, String metodo, String usuario, String contrasena) {
+        try {
+
+            String usuarioE = URLEncoder.encode(usuario, "UTF-8");
+            String contrasenaE = URLEncoder.encode(contrasena, "UTF-8");
+
+            // Crear un objeto JSON con el usuario y la contraseña
+            JSONObject jsonCriterio = new JSONObject();
+            jsonCriterio.put("usuario", usuarioE);
+            jsonCriterio.put("contrasena", contrasenaE);
+
+            // Convertir el objeto JSON a cadena
+            String cadenaJSON = jsonCriterio.toString();
+
+            Log.i("Criterio", cadenaJSON);
+
+            // Configurar la conexión
+            URL url = new URL(direccionURL);
+            conexion = (HttpURLConnection) url.openConnection();
+            conexion.setDoOutput(true);
+            conexion.setRequestMethod(metodo);
+            conexion.setFixedLengthStreamingMode(cadenaJSON.length());
+            conexion.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+            // Enviar los datos al servidor
+            os = new BufferedOutputStream(conexion.getOutputStream());
+            os.write(cadenaJSON.getBytes());
+            os.flush();
+            os.close();
+
+            // Leer la respuesta del servidor
+            is = new BufferedInputStream(conexion.getInputStream());
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            StringBuilder cadenaRespuesta = new StringBuilder();
+
+            String fila;
+            while ((fila = br.readLine()) != null) {
+                cadenaRespuesta.append(fila).append("\n");
+            }
+
+            is.close();
+
+            Log.i("MSJ->", String.valueOf(cadenaRespuesta));
+
+            // Convertir la respuesta a un objeto JSON
+            jsonObject = new JSONObject(String.valueOf(cadenaRespuesta));
+
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
+
+        return jsonObject;
+    }
+
+
+
     public JSONObject realizarCambio(String direccionURL, String metodo, Cita cita) {
         try {
             String pacienteId = URLEncoder.encode(String.valueOf(cita.getPacienteId()), "UTF-8");
