@@ -44,13 +44,15 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
     public CitaAdapter adapter;
     public List<Cita> citas;
 
+    public String urlApi;
+
     LayoutInflater inflater;
 
     EditText searchBox;
 
     Button searchButton;
 
-    String[] datos = new String[]{"Seleccionar doctor...","1 Dk. Damecio John", "2 Dra. Juana Gallos", "3 DK. Country 2"};
+    String[] datosP;
     ArrayAdapter<String> adapterPersonal;
 
     @Override
@@ -58,7 +60,12 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cita);
 
-        adapterPersonal = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, datos);
+        //urlApi = "https://clinweb.000webhostapp.com/API/";
+        urlApi = "http://clinweb.000webhostapp.com/API/";
+
+        datosP = new String[]{"Seleccionar doctor...","1 Dk. Damecio John", "2 Dra. Juana Gallos", "3 DK. Country 2"};
+
+        adapterPersonal = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, datosP);
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
@@ -72,11 +79,11 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
         citas = new ArrayList<>();
 
         new Thread(() -> {
-            String url = "http://192.168.1.8/clinica/API/apiAndroidMostrar.php";
+            String url = urlApi + "apiAndroidMostrar.php";
             String metodo = "GET";
 
             AnalizadorJSON analizadorJSON = new AnalizadorJSON();
-            JSONObject jsonObject = analizadorJSON.peticionHTTPConsultas(url, metodo, "");
+            JSONObject jsonObject = analizadorJSON.peticionHTTPConsultas(url, metodo);
 
             try {
                 JSONArray datos = jsonObject.getJSONArray("citas");
@@ -163,7 +170,7 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
 
             new Thread(() -> {
 
-                String url = "http://192.168.1.8/clinica/API/apiAndroidBaja.php";
+                String url = urlApi + "apiAndroidBaja.php";
                 String metodo = "POST";
 
                 AnalizadorJSON analizadorJSON = new AnalizadorJSON();
@@ -199,7 +206,7 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
 
         if (network != null && cm.getNetworkCapabilities(cm.getActiveNetwork()) != null) {
             new Thread(() -> {
-                String url = "http://192.168.1.8/clinica/API/apiAndroidCambios.php";
+                String url = urlApi + "apiAndroidCambios.php";
                 String metodo = "POST";
 
                 AnalizadorJSON analizadorJSON = new AnalizadorJSON();
@@ -306,11 +313,11 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
 
     public void actualizarCitas() {
         new Thread(() -> {
-            String url = "http://192.168.1.8/clinica/API/apiAndroidMostrar.php";
+            String url = urlApi + "apiAndroidMostrar.php";
             String metodo = "GET";
 
             AnalizadorJSON analizadorJSON = new AnalizadorJSON();
-            JSONObject jsonObject = analizadorJSON.peticionHTTPConsultas(url, metodo, "");
+            JSONObject jsonObject = analizadorJSON.peticionHTTPConsultas(url, metodo);
 
             try {
                 JSONArray datos = jsonObject.getJSONArray("citas");
@@ -346,7 +353,7 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
 
     public void busquedaCitas(String criterio) {
         new Thread(() -> {
-            String url = "http://192.168.1.8/clinica/API/apiAndroidCriterio.php";
+            String url = urlApi + "apiAndroidCriterio.php";
             String metodo = "GET";
 
             AnalizadorJSON analizadorJSON = new AnalizadorJSON();
@@ -465,7 +472,7 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
 
             new Thread(() -> {
 
-                String url = "http://192.168.1.8/clinica/API/apiAndroidAltas.php";
+                String url = urlApi + "apiAndroidAltas.php";
                 String metodo = "POST";
 
                 AnalizadorJSON analizadorJSON = new AnalizadorJSON();

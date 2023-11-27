@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:elevation="8dp"
     android:padding="8dp"
-    android:layout_margin="4dp">
+    android:paddingStart="24dp"
+    android:layout_margin="4dp"
+    tools:ignore="RtlSymmetry">
 
     <TextView
         android:id="@+id/fechaHoraTextView"
@@ -16,21 +19,23 @@
         android:textSize="16sp"
         android:layout_marginTop="4dp"/>
 
+    <!-- Agrega estas dos TextView adicionales -->
     <TextView
         android:id="@+id/motivoCitaTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
+        android:paddingStart="12dp"
         android:text="@string/motivo_de_la_cita"
         android:textColor="@color/material_dynamic_secondary40" />
 
-    <!-- Agrega estas dos TextView adicionales -->
     <TextView
         android:id="@+id/numSalaTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:text="@string/n_mero_de_sala"
+        android:paddingStart="12dp"
         android:textColor="@color/material_dynamic_secondary40" />
 
     <TextView
@@ -38,6 +43,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
+        android:paddingStart="12dp"
         android:text="@string/id_del_personal"
         android:textColor="@color/material_dynamic_secondary40" />
 
@@ -47,19 +53,14 @@
         android:orientation="horizontal"
         android:layout_marginTop="8dp">
 
-       <!-- <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"/> -->
 
         <Button
             android:id="@+id/btnEliminar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/eliminar"
-            android:padding="8dp"
             android:layout_marginEnd="4dp"
             android:layout_marginBottom="4dp"
+            android:text="@string/eliminar"
             style="?android:attr/buttonBarButtonStyle" />
 
         <Button
@@ -67,7 +68,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/editar"
-            android:padding="8dp"
             android:layout_marginStart="4dp"
             android:layout_marginBottom="4dp"
             style="?android:attr/buttonBarButtonStyle" />

@@ -253,19 +253,15 @@ public class AnalizadorJSON {
 
 
     //----------METODO PARA Consultas
-    public JSONObject peticionHTTPConsultas(String cadenaURL, String metodo, String criterio) {
+    public JSONObject peticionHTTPConsultas(String cadenaURL, String metodo) {
         try {
-            // Construir la URL con el criterio como parámetro en la cadena de consulta
-            if (criterio != null && !criterio.isEmpty()) {
-                cadenaURL += "?criterio=" + URLEncoder.encode(criterio, "UTF-8");
-            }
 
             url = new URL(cadenaURL);
             conexion = (HttpURLConnection) url.openConnection();
 
             // Configurar la conexión para la solicitud GET
             conexion.setRequestMethod(metodo);
-            conexion.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            conexion.setRequestProperty("Content-Type", "application/json");
 
             // Realizar la conexión y obtener la respuesta
             is = new BufferedInputStream(conexion.getInputStream());
@@ -280,7 +276,7 @@ public class AnalizadorJSON {
             is.close();
 
             String cadena = cad.toString();
-            Log.d("--->", cadena);
+
             jsonObject = new JSONObject(cadena);
 
         } catch (IOException | JSONException e) {
