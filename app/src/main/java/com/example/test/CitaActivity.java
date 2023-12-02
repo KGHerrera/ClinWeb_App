@@ -2,6 +2,7 @@ package com.example.test;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Rect;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.os.Bundle;
@@ -75,6 +76,12 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
+
+        // Define la altura del espacio que deseas agregar al final de la lista
+        int bottomSpaceHeight = getResources().getDimensionPixelSize(R.dimen.bottom_space_height);
+
+        // Agrega la decoración al RecyclerView
+        recyclerView.addItemDecoration(new BottomSpaceItemDecoration(bottomSpaceHeight));
 
         citas = new ArrayList<>();
 
@@ -470,7 +477,6 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
                     //String mensaje = "Cita guardada:\n" + nuevaCita.toString();
                     //Toast.makeText(this, mensaje, Toast.LENGTH_LONG).show();
 
-
                     agregarCita(nuevaCita);
 
 
@@ -534,5 +540,22 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
     @Override
     public void onCitaDelete(Cita cita, Context context) {
         mostrarConfirmacionEliminar(cita, context);
+    }
+
+    class BottomSpaceItemDecoration extends RecyclerView.ItemDecoration {
+        private final int bottomSpaceHeight;
+
+        public BottomSpaceItemDecoration(int bottomSpaceHeight) {
+            this.bottomSpaceHeight = bottomSpaceHeight;
+        }
+
+        @Override
+        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+            if (parent.getChildAdapterPosition(view) == parent.getAdapter().getItemCount() - 1) {
+                outRect.bottom = bottomSpaceHeight;
+            } else {
+                outRect.bottom = 0;
+            }
+        }
     }
 }
