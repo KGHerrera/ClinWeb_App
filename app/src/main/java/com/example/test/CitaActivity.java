@@ -378,30 +378,35 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
             JSONObject jsonObject = analizadorJSON.buscarCitas(url, metodo, criterio);
 
             try {
-                JSONArray datos = jsonObject.getJSONArray("citas");
+                if(jsonObject != null){
+                    JSONArray datos = jsonObject.getJSONArray("citas");
 
-                // Limpiar la lista antes de agregar nuevas citas
-                citas.clear();
+                    // Limpiar la lista antes de agregar nuevas citas
+                    citas.clear();
 
-                for (int i = 0; i < datos.length(); i++) {
-                    int idCita = datos.getJSONObject(i).getInt("id_cita");
-                    int fkPaciente = datos.getJSONObject(i).getInt("fk_paciente");
-                    int fkPersonal = datos.getJSONObject(i).getInt("fk_personal");
-                    int fkSala = datos.getJSONObject(i).getInt("fk_sala");
-                    String fechaHora = datos.getJSONObject(i).getString("fecha_hora");
-                    String motivoCita = datos.getJSONObject(i).getString("motivo_cita");
+                    for (int i = 0; i < datos.length(); i++) {
+                        int idCita = datos.getJSONObject(i).getInt("id_cita");
+                        int fkPaciente = datos.getJSONObject(i).getInt("fk_paciente");
+                        int fkPersonal = datos.getJSONObject(i).getInt("fk_personal");
+                        int fkSala = datos.getJSONObject(i).getInt("fk_sala");
+                        String fechaHora = datos.getJSONObject(i).getString("fecha_hora");
+                        String motivoCita = datos.getJSONObject(i).getString("motivo_cita");
 
-                    Cita cita = new Cita(idCita, fkPaciente, fkPersonal, fkSala, fechaHora, motivoCita);
-                    citas.add(cita);
+                        Cita cita = new Cita(idCita, fkPaciente, fkPersonal, fkSala, fechaHora, motivoCita);
+                        citas.add(cita);
+                    }
+
+                    // Notificar al adaptador sobre los cambios en el hilo principal
+                    runOnUiThread(() -> {
+                        if (adapter != null) {
+                            adapter.setListener(this);
+                            adapter.notifyDataSetChanged();
+                        }
+                    });
+                } else {
+                    Toast.makeText(getApplicationContext(), "No hubo respuesta del servidor :(", Toast.LENGTH_LONG).show();
                 }
 
-                // Notificar al adaptador sobre los cambios en el hilo principal
-                runOnUiThread(() -> {
-                    if (adapter != null) {
-                        adapter.setListener(this);
-                        adapter.notifyDataSetChanged();
-                    }
-                });
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -497,15 +502,20 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
                 JSONObject jsonObject = analizadorJSON.realizarAlta(url, metodo, cita);
 
                 try {
-                    String res = jsonObject.getString("mensaje");
-                    boolean exito = jsonObject.getBoolean("exito");
-                    runOnUiThread(() -> {
-                        Toast.makeText(getApplicationContext(), res, Toast.LENGTH_LONG).show();
+                    if(jsonObject != null){
+                        String res = jsonObject.getString("mensaje");
+                        boolean exito = jsonObject.getBoolean("exito");
+                        runOnUiThread(() -> {
+                            Toast.makeText(getApplicationContext(), res, Toast.LENGTH_LONG).show();
 
-                        if(exito){
-                            actualizarCitas();
-                        }
-                    });
+                            if(exito){
+                                actualizarCitas();
+                            }
+                        });
+                    } else {
+                        Toast.makeText(getApplicationContext(), "No hubo respuesta del servidor :(", Toast.LENGTH_LONG).show();
+                    }
+
 
                 } catch (JSONException e) {
                     e.printStackTrace();
