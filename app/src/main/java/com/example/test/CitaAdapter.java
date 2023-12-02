@@ -88,6 +88,7 @@ public class CitaAdapter extends RecyclerView.Adapter<CitaAdapter.ViewHolder> {
             idPersonalTextView = itemView.findViewById(R.id.idPersonalTextView);
             btnEditar = itemView.findViewById(R.id.btnEditar);
             btnEliminar = itemView.findViewById(R.id.btnEliminar);
+
         }
     }
 }

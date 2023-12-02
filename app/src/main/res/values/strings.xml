@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">test</string>
-    <string name="username_hint">Nombre de usuario</string>
+    <string name="username_hint">Correo Electronico</string>
     <string name="password_hint">Contraseña</string>
     <string name="login_button">Iniciar sesión</string>
     <string name="register_button">Registrarse</string>

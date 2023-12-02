@@ -41,21 +41,28 @@ public class MainActivity extends AppCompatActivity {
             String contrasena = editContrasena.getText().toString();
 
             new Thread(() -> {
+
                 String url = urlApi + "verificarUsuario.php";
                 String metodo = "POST";
                 AnalizadorJSON analizadorJSON = new AnalizadorJSON();
                 JSONObject jsonObject = analizadorJSON.verificarUsuario(url, metodo, usuario, contrasena);
 
                 try {
-                    boolean exito = jsonObject.getBoolean("exito");
-                    if (exito) {
-                        runOnUiThread(() -> {
-                            Intent intent = new Intent(MainActivity.this, CitaActivity.class);
-                            startActivity(intent);
-                        });
+                    if(jsonObject != null){
+                        boolean exito = jsonObject.getBoolean("exito");
+                        if (exito) {
+                            runOnUiThread(() -> {
+                                Intent intent = new Intent(MainActivity.this, CitaActivity.class);
+                                startActivity(intent);
+                            });
+                        } else {
+                            runOnUiThread(() -> {
+                                Toast.makeText(MainActivity.this, "Credenciales incorrectas", Toast.LENGTH_SHORT).show();
+                            });
+                        }
                     } else {
                         runOnUiThread(() -> {
-                            Toast.makeText(MainActivity.this, "Credenciales incorrectas", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "No hubo respuesta del servidor :(", Toast.LENGTH_SHORT).show();
                         });
                     }
 

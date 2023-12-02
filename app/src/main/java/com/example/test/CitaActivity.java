@@ -86,26 +86,30 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
             JSONObject jsonObject = analizadorJSON.peticionHTTPConsultas(url, metodo);
 
             try {
-                JSONArray datos = jsonObject.getJSONArray("citas");
+                if(jsonObject != null) {
+                    JSONArray datos = jsonObject.getJSONArray("citas");
 
-                for (int i = 0; i < datos.length(); i++) {
-                    int idCita = datos.getJSONObject(i).getInt("id_cita");
-                    int fkPaciente = datos.getJSONObject(i).getInt("fk_paciente");
-                    int fkPersonal = datos.getJSONObject(i).getInt("fk_personal");
-                    int fkSala = datos.getJSONObject(i).getInt("fk_sala");
-                    String fechaHora = datos.getJSONObject(i).getString("fecha_hora");
-                    String motivoCita = datos.getJSONObject(i).getString("motivo_cita");
+                    for (int i = 0; i < datos.length(); i++) {
+                        int idCita = datos.getJSONObject(i).getInt("id_cita");
+                        int fkPaciente = datos.getJSONObject(i).getInt("fk_paciente");
+                        int fkPersonal = datos.getJSONObject(i).getInt("fk_personal");
+                        int fkSala = datos.getJSONObject(i).getInt("fk_sala");
+                        String fechaHora = datos.getJSONObject(i).getString("fecha_hora");
+                        String motivoCita = datos.getJSONObject(i).getString("motivo_cita");
 
-                    Cita cita = new Cita(idCita, fkPaciente, fkPersonal, fkSala, fechaHora, motivoCita);
-                    citas.add(cita);
+                        Cita cita = new Cita(idCita, fkPaciente, fkPersonal, fkSala, fechaHora, motivoCita);
+                        citas.add(cita);
+                    }
+
+                    // Actualizar el adaptador en el hilo principal
+                    runOnUiThread(() -> {
+                        adapter = new CitaAdapter(citas);
+                        adapter.setListener(this);
+                        recyclerView.setAdapter(adapter);
+                    });
+                } else {
+                    Toast.makeText(CitaActivity.this, "No hubo respuesta del servidor :(", Toast.LENGTH_SHORT).show();
                 }
-
-                // Actualizar el adaptador en el hilo principal
-                runOnUiThread(() -> {
-                    adapter = new CitaAdapter(citas);
-                    adapter.setListener(this);
-                    recyclerView.setAdapter(adapter);
-                });
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -178,16 +182,20 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
 
 
                 try {
-                    String mensaje = jsonObject.getString("mensaje");
-                    boolean exito = mensaje.equals("Cita eliminada correctamente");
+                    if(jsonObject != null) {
+                        String mensaje = jsonObject.getString("mensaje");
+                        boolean exito = mensaje.equals("Cita eliminada correctamente");
 
-                    runOnUiThread(() -> {
-                        Toast.makeText(getApplicationContext(), mensaje, Toast.LENGTH_LONG).show();
+                        runOnUiThread(() -> {
+                            Toast.makeText(getApplicationContext(), mensaje, Toast.LENGTH_LONG).show();
 
-                        if(exito){
-                            actualizarCitas();
-                        }
-                    });
+                            if (exito) {
+                                actualizarCitas();
+                            }
+                        });
+                    } else {
+                        Toast.makeText(getApplicationContext(), "No hubo respuesta del servidor :(", Toast.LENGTH_LONG).show();
+                    }
 
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
@@ -213,15 +221,19 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
                 JSONObject jsonObject = analizadorJSON.realizarCambio(url, metodo, cita);
 
                 try {
-                    String mensaje = jsonObject.getString("mensaje");
-                    boolean exito = mensaje.equals("Cita actualizada correctamente");
+                    if(jsonObject != null){
+                        String mensaje = jsonObject.getString("mensaje");
+                        boolean exito = mensaje.equals("Cita actualizada correctamente");
 
-                    runOnUiThread(() -> {
-                        Toast.makeText(getApplicationContext(), mensaje, Toast.LENGTH_LONG).show();
-                        if(exito){
-                            actualizarCitas();
-                        }
-                    });
+                        runOnUiThread(() -> {
+                            Toast.makeText(getApplicationContext(), mensaje, Toast.LENGTH_LONG).show();
+                            if(exito){
+                                actualizarCitas();
+                            }
+                        });
+                    } else {
+                        Toast.makeText(getApplicationContext(), "No hubo respuesta del servidor :(", Toast.LENGTH_LONG).show();
+                    }
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }
@@ -273,7 +285,7 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
 
                     String nuevoMotivo = editTextMotivoCita.getText().toString();
 
-                    if(nuevoMotivo.equals("")){
+                    if(nuevoMotivo.trim().equals("")){
                         runOnUiThread(() -> {
                             Toast.makeText(getApplicationContext(), "Error al agregar debes escribir un motivo", Toast.LENGTH_LONG).show();
                         });
@@ -320,30 +332,36 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
             JSONObject jsonObject = analizadorJSON.peticionHTTPConsultas(url, metodo);
 
             try {
-                JSONArray datos = jsonObject.getJSONArray("citas");
 
-                // Limpiar la lista antes de agregar nuevas citas
-                citas.clear();
+                if(jsonObject != null) {
+                    JSONArray datos = jsonObject.getJSONArray("citas");
 
-                for (int i = 0; i < datos.length(); i++) {
-                    int idCita = datos.getJSONObject(i).getInt("id_cita");
-                    int fkPaciente = datos.getJSONObject(i).getInt("fk_paciente");
-                    int fkPersonal = datos.getJSONObject(i).getInt("fk_personal");
-                    int fkSala = datos.getJSONObject(i).getInt("fk_sala");
-                    String fechaHora = datos.getJSONObject(i).getString("fecha_hora");
-                    String motivoCita = datos.getJSONObject(i).getString("motivo_cita");
+                    // Limpiar la lista antes de agregar nuevas citas
+                    citas.clear();
 
-                    Cita cita = new Cita(idCita, fkPaciente, fkPersonal, fkSala, fechaHora, motivoCita);
-                    citas.add(cita);
+                    for (int i = 0; i < datos.length(); i++) {
+                        int idCita = datos.getJSONObject(i).getInt("id_cita");
+                        int fkPaciente = datos.getJSONObject(i).getInt("fk_paciente");
+                        int fkPersonal = datos.getJSONObject(i).getInt("fk_personal");
+                        int fkSala = datos.getJSONObject(i).getInt("fk_sala");
+                        String fechaHora = datos.getJSONObject(i).getString("fecha_hora");
+                        String motivoCita = datos.getJSONObject(i).getString("motivo_cita");
+
+                        Cita cita = new Cita(idCita, fkPaciente, fkPersonal, fkSala, fechaHora, motivoCita);
+                        citas.add(cita);
+                    }
+
+                    // Notificar al adaptador sobre los cambios en el hilo principal
+                    runOnUiThread(() -> {
+                        if (adapter != null) {
+                            adapter.setListener(this);
+                            adapter.notifyDataSetChanged();
+                        }
+                    });
+                } else {
+                    Toast.makeText(getApplicationContext(), "No hubo respuesta del servidor :(", Toast.LENGTH_LONG).show();
                 }
 
-                // Notificar al adaptador sobre los cambios en el hilo principal
-                runOnUiThread(() -> {
-                    if (adapter != null) {
-                        adapter.setListener(this);
-                        adapter.notifyDataSetChanged();
-                    }
-                });
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -413,7 +431,7 @@ public class CitaActivity extends AppCompatActivity implements CitaAdapter.CitaA
                     String motivoCita = editTextMotivoCita.getText().toString();
 
 
-                    if(motivoCita.equals("")){
+                    if(motivoCita.trim().equals("")){
                         runOnUiThread(() -> {
                             Toast.makeText(getApplicationContext(), "Error al agregar debes escribir un motivo", Toast.LENGTH_LONG).show();
                         });
